@@ -29,11 +29,11 @@ def format_fsize(fsize):
             break
 
     if len(str(int(fsize))) == 3:
-        return str("{:03.0f}".format(fsize)) + " " + prefixes[incr]
+        return str("{:03.0f} {}".format(fsize, prefixes[incr]))
     if len(str(int(fsize))) == 2:
-        return str("{: 3.0f}".format(fsize)) + " " + prefixes[incr]
+        return str("{: 3.0f} {}".format(fsize, prefixes[incr]))
     if len(str(int(fsize))) == 1:
-        return str("{:03.1f}".format(fsize)) + " " + prefixes[incr]
+        return str("{:03.1f} {}".format(fsize, prefixes[incr]))
 
 
 def format_timestring(dt):
@@ -66,7 +66,7 @@ class File(Entity):
 class Folder(Entity):
     def __init__(self, name):
         self.name = name
-        self.url = "./" + name
+        self.url = u"./{}".format(name)
         self.dir = True
 
 
@@ -88,7 +88,7 @@ def home():
 @app.route('/<path:path>')
 def index(path):
     refresh_cache = request.args.get('flush')
-    page_id = hashlib.md5(path).hexdigest()
+    page_id = hashlib.md5(path.encode('ascii', errors='ignore')).hexdigest()
     page = memcache.get(page_id)
     if page is None or refresh_cache:
         conn = S3Connection(ACCESS_KEY, SECRET_ACCESS_KEY)
@@ -110,8 +110,8 @@ def index(path):
             entities.append(entity)
         page = render_template(
             "index.html",
-            path="/" + path,
-            flush_url="{}?flush=1".format(request.url) if not refresh_cache else request.url,
+            path=u"/{}".format(path),
+            flush_url=u"{}?flush=1".format(request.url) if not refresh_cache else request.url,
             entities=entities)
         if not memcache.set(page_id, page, CACHE_TTL):
             logging.warning("Failed to update memcache.")
