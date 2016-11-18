@@ -1,5 +1,4 @@
-from flask import Flask, render_template
-from flask import redirect, url_for, request, flash, abort, jsonify
+from flask import Flask, render_template, request
 
 from boto.s3.connection import S3Connection
 
@@ -88,9 +87,10 @@ def home():
 
 @app.route('/<path:path>')
 def index(path):
+    refresh_cache = request.args.get('flush')
     page_id = hashlib.md5(path).hexdigest()
     page = memcache.get(page_id)
-    if page is None:
+    if page is None or refresh_cache:
         conn = S3Connection(ACCESS_KEY, SECRET_ACCESS_KEY)
         bucket = conn.get_bucket(BUCKET)
         contents = bucket.list(
@@ -111,8 +111,9 @@ def index(path):
         page = render_template(
             "index.html",
             path="/" + path,
+            flush_url="{}?flush=1".format(request.url) if not refresh_cache else request.url,
             entities=entities)
-        if not memcache.add(page_id, page, CACHE_TTL):
+        if not memcache.set(page_id, page, CACHE_TTL):
             logging.warning("Failed to update memcache.")
     return page
 
