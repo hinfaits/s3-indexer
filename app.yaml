@@ -10,11 +10,16 @@ handlers:
   static_files: static/favicon.ico
   upload: static/favicon.ico
 
+- url: /robots.txt
+  static_files: static/robots.txt
+  upload: static/robots.txt
+
 - url: .*
   script: main.app
 
 env_variables:
-  SECRET_KEY: "this-is-not-used-but-here-anyway"
+  PASSWORD: "password"
+  SECRET_KEY: "change-this-please"
   S3_LINK_TTL: s3-link-ttl-in-seconds
   CACHE_TTL: memcache-page-ttl-in-seconds
   BUCKET: "s3-bucket-name"

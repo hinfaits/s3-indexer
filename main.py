@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, Markup
 
 from boto.s3.connection import S3Connection
 
@@ -7,33 +7,40 @@ from google.appengine.ext.appstats import recording
 
 import os
 import hashlib
+import random
+import string
 from datetime import datetime
 
 import logging
 
+PASSWORD = os.environ.get('PASSWORD')
+SECRET_KEY = os.environ['SECRET_KEY']
 CACHE_TTL = int(os.environ['CACHE_TTL'])
 S3_LINK_TTL = int(os.environ['S3_LINK_TTL'])
 BUCKET = os.environ['BUCKET']
 ACCESS_KEY = os.environ['ACCESS_KEY']
 SECRET_ACCESS_KEY = os.environ['SECRET_ACCESS_KEY']
 
-
 def format_fsize(fsize):
+    formats = {
+        0: "{:03.1f} {}",
+        1: "{:03.1f} {}",
+        2: "{: 3.0f} {}",
+        # For zero-padding instead of space padding
+        # 2: "{:03.0f} {}",
+        3: "{:03.0f} {}",
+    }
     prefixes = ["B", "K", "M", "G", "T", "P", "E"]
 
     incr = 0
     while len(str(int(round(fsize)))) > 3:
-        fsize = fsize / 1024
+        fsize = fsize / 1024.0
         incr += 1
         if incr >= len(prefixes) - 1:
-            break
+            raise RuntimeError
 
-    if len(str(int(fsize))) == 3:
-        return str("{:03.0f} {}".format(fsize, prefixes[incr]))
-    if len(str(int(fsize))) == 2:
-        return str("{: 3.0f} {}".format(fsize, prefixes[incr]))
-    if len(str(int(fsize))) == 1:
-        return str("{:03.1f} {}".format(fsize, prefixes[incr]))
+    out_string = formats[len(str(int(round(fsize))))].format(fsize, prefixes[incr])
+    return Markup(out_string.replace(" ", "&nbsp;"))
 
 
 def format_timestring(dt):
@@ -46,7 +53,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     CSRF_ENABLED = True
-    SECRET_KEY = ""
+    SECRET_KEY = SECRET_KEY
 
 
 class Entity(object):
@@ -63,6 +70,7 @@ class File(Entity):
         self.ext = os.path.splitext(name)[1].replace(".", "")
         self.dir = False
 
+
 class Folder(Entity):
     def __init__(self, name):
         self.name = name
@@ -70,23 +78,40 @@ class Folder(Entity):
         self.dir = True
 
 
+def login():
+    if not PASSWORD:
+        # Password is not set, or is empty
+        #   So we skip authentication
+        return True
+    secret_key = memcache.get('secret_key')
+    if not secret_key:
+        secret_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(10))
+        memcache.add('secret_key', secret_key)
+    if request.form.get('password') == PASSWORD:
+        session['secret_key'] = secret_key
+    if session.get('secret_key') == secret_key:
+        return True
+    return False
+
+
 app = Flask(__name__)
 app.wsgi_app = recording.appstats_wsgi_middleware(app.wsgi_app)
 app.config.from_object(Config)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def home():
     """
-    Redirect to the index function
-    The interpreted won't let us catch the root dir
-      with the <path> variable
+    Redirect to the index function,
+    Flask won't let us catch the root dir with the <path> variable
     """
     return index("")
 
 
-@app.route('/<path:path>')
+@app.route('/<path:path>', methods=['GET', 'POST'])
 def index(path):
+    if not login():
+        return render_template("login.html")
     refresh_cache = request.args.get('flush')
     page_id = hashlib.md5(path.encode('ascii', errors='ignore')).hexdigest()
     page = memcache.get(page_id)
@@ -118,5 +143,5 @@ def index(path):
     return page
 
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=True, threaded=True)
+# if __name__ == '__main__':
+#     app.run(host="0.0.0.0", debug=True, threaded=True)
