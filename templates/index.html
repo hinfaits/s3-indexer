@@ -1,23 +1,25 @@
 <html>
   <head>
     <title>Index of {{ path }}</title>
-    <link href="//netdna.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
     <style>
       table.fixed-width {
         font-family: 'Andale Mono', AndaleMono, monospace;
         font-size: 11.5px;
         vertical-align: bottom;
       }
+      a, a:link, a:visited, a:hover, a:active {
+        color: #333333;
+      }
     </style>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
   </head>
   <body>
     <div class="container">
       <div class="page-header">
-        <h1 id="h1-title">Index of {{ path }}</h1>
+        <h1 id="h1-title"><a href="/">Index of {{ path }}</a></h1>
       </div>
       <div class="row">
-        <p>Click <a href="{{ flush_url }}">here</a> to flush the page cache.</p>
+        <p><a href="{{ flush_url }}">Flush page cache.</a></p>
       </div>
       <div class="row">
         <div class="col-sm-12">
@@ -53,13 +55,29 @@
                 {% endif %}
                 <a href="{{ entity.url }}">{{ entity.name }}</a>
               </td>
-              <td>{{ entity.last_modified }}</td>
+              <td class="dt">{{ entity.last_modified }}</td>
               <td>{{ entity.size }}</td>
-              <td>{{ entity.ext }} </td>
+              <td>{{ entity.ext }}</td>
             </tr>
             {% endfor %}
           </table>
         </div>
       </div>
     </div>
-</body></html>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.11/moment-timezone-with-data.min.js"></script>
+    <script type="text/javascript">
+      var times = document.getElementsByClassName("dt");
+      var dt_utc;
+      var dt_local;
+      moment.locale('en');
+      for (var i = 0; i < times.length; i++) {
+        if (times[i].innerHTML) {
+          dt_utc = moment.tz(times[i].innerHTML, "DD-MMM-YY HH:mm:ss ZZ", "Etc/UTC");
+          dt_local = dt_utc.clone().tz(moment.tz.guess())
+          times[i].innerHTML = dt_local.format("ddd DD-MMM-YY HH:mm:ss z");
+        }
+      }
+    </script>
+  </body>
+</html>

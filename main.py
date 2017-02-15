@@ -1,3 +1,11 @@
+import os
+import hashlib
+import random
+import string
+from datetime import datetime
+import pytz
+import logging
+
 from flask import Flask, render_template, request, session, Markup
 
 from boto.s3.connection import S3Connection
@@ -5,13 +13,8 @@ from boto.s3.connection import S3Connection
 from google.appengine.api import memcache
 from google.appengine.ext.appstats import recording
 
-import os
-import hashlib
-import random
-import string
-from datetime import datetime
 
-import logging
+
 
 PASSWORD = os.environ.get('PASSWORD')
 SECRET_KEY = os.environ['SECRET_KEY']
@@ -43,10 +46,10 @@ def format_fsize(fsize):
     return Markup(out_string.replace(" ", "&nbsp;"))
 
 
-def format_timestring(dt):
-    return (
-            datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S.000Z")
-        ).strftime("%d-%b-%Y %H:%M:%S")
+def format_timestring(dt_string):
+    dt_unaware = datetime.strptime(dt_string, "%Y-%m-%dT%H:%M:%S.000Z")
+    dt_aware = dt_unaware.replace(tzinfo=pytz.UTC)
+    return dt_aware.strftime("%d-%b-%Y %H:%M:%S %z")
 
 
 class Config(object):
