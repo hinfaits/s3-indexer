@@ -6,7 +6,7 @@ from datetime import datetime
 import pytz
 import logging
 
-from flask import Flask, render_template, request, session, Markup
+from flask import Flask, render_template, request, session, Markup, redirect, url_for
 
 from boto.s3.connection import S3Connection
 
@@ -104,14 +104,19 @@ app.config.from_object(Config)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
+    return redirect(url_for("index", path=""))
+
+
+@app.route('/bucket/', methods=['GET', 'POST'])
+def catch_urls():
     """
-    Redirect to the index function,
+    Alias for the index function at the root,
     Flask won't let us catch the root dir with the <path> variable
     """
     return index("")
 
 
-@app.route('/<path:path>', methods=['GET', 'POST'])
+@app.route('/bucket/<path:path>', methods=['GET', 'POST'])
 def index(path):
     if not login():
         return render_template("login.html")

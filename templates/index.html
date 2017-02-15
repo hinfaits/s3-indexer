@@ -1,7 +1,8 @@
 <html>
   <head>
     <title>Index of {{ path }}</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- <link href="/static/bootstrap.min.css" rel="stylesheet">     -->
     <style>
       table.fixed-width {
         font-family: 'Andale Mono', AndaleMono, monospace;
@@ -64,8 +65,12 @@
         </div>
       </div>
     </div>
+<!--
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.11/moment-timezone-with-data.min.js"></script>
+ -->
+    <script type="text/javascript" src="/static/moment.min.js"></script>
+    <script type="text/javascript" src="/static/moment-timezone-with-data.min.js"></script>
     <script type="text/javascript">
       var times = document.getElementsByClassName("dt");
       var dt_utc;
