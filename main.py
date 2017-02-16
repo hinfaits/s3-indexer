@@ -49,7 +49,7 @@ def format_fsize(fsize):
 def format_timestring(dt_string):
     dt_unaware = datetime.strptime(dt_string, "%Y-%m-%dT%H:%M:%S.000Z")
     dt_aware = dt_unaware.replace(tzinfo=pytz.UTC)
-    return dt_aware.strftime("%d-%b-%Y %H:%M:%S %z")
+    return dt_aware.strftime("%a %d-%b-%y %H:%M:%S %z")
 
 
 class Config(object):

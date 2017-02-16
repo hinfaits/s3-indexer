@@ -78,7 +78,7 @@
       moment.locale('en');
       for (var i = 0; i < times.length; i++) {
         if (times[i].innerHTML) {
-          dt_utc = moment.tz(times[i].innerHTML, "DD-MMM-YY HH:mm:ss ZZ", "Etc/UTC");
+          dt_utc = moment.tz(times[i].innerHTML, "ddd DD-MMM-YY HH:mm:ss ZZ", "Etc/UTC");
           dt_local = dt_utc.clone().tz(moment.tz.guess())
           times[i].innerHTML = dt_local.format("ddd DD-MMM-YY HH:mm:ss z");
         }
